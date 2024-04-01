@@ -93,10 +93,10 @@ entity thunderbird_fsm is
     );
 end entity thunderbird_fsm;
 
-architecture thunderbird_fsm_arch of thunderbird_fsm is 
-    signal S : std_logic_vector(7 downto 0) := "10000000"; -- Initial state OFF
-    signal S_next : std_logic_vector(7 downto 0);
-    signal o_LC, o_LB, o_LA, o_RA, o_RB, o_RC : std_logic;
+architecture thunderbird_fsm_arch of thunderbird_fsm is
+    signal S: std_logic_vector(7 downto 0) := "10000000"; -- Initial state OFF
+    signal S_next: std_logic_vector(7 downto 0);
+    signal o_LC, o_LB, o_LA, o_RA, o_RB, o_RC: std_logic;
 begin
     -- Next-state logic
     process(i_clk, i_reset)
