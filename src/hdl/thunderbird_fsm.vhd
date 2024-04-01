@@ -94,84 +94,37 @@ entity thunderbird_fsm is
       );
 end thunderbird_fsm;
 
-architecture thunderbird_fsm_arch of thunderbird_fsm is 
-   signal f_Q     : std_logic_vector(7 downto 0) := "10000000"; 
-   signal f_Q_next: std_logic_vector(7 downto 0);
--- CONSTANTS ------------------------------------------------------------------
-   signal o_LC, o_LB, o_LA, o_RA, o_RB, o_RC : std_logic;
-
+architecture thunderbird_fsm_arch of thunderbird_fsm is
+    signal S: std_logic_vector(7 downto 0) := "10000000"; -- Initial state S7 (OFF)
+    signal S_next: std_logic_vector(7 downto 0);
 begin
-process(i_clk)
+    -- Next-state logic
+    process(i_clk, i_reset)
     begin
         if rising_edge(i_clk) then
             if i_reset = '1' then
-                f_Q <= "10000000"; -- Reset to OFF state
+                S <= "10000000"; -- Reset to state S7 (OFF)
             else
-                f_Q <= f_Q_next;   -- Update state
+                S <= S_next;
             end if;
         end if;
     end process;
-	-- CONCURRENT STATEMENTS --------------------------------------------------------	
-process(f_Q, i_left, i_right)
-    begin
-        -- Default next state is the current state
-        f_Q_next <= f_Q;  
-    
-        case f_Q is
-            when "10000000" =>  -- OFF state
-                if i_left = '1' and i_right = '1' then
-                    f_Q_next <= "01000000";  -- Transition to ON (hazard)
-                elsif i_left = '1' then
-                    f_Q_next <= "00000100";  -- Transition to L1
-                elsif i_right = '1' then
-                    f_Q_next <= "00010000";  -- Transition to R1
-                end if;
-            when "01000000" =>  -- ON state (hazard)
-                f_Q_next <= "10000000";  -- Transition to OFF
-            when "00000100" =>  -- L1 state
-                if i_left = '1' then
-                    f_Q_next <= "00000010";  -- Transition to L2
-                else
-                    f_Q_next <= "10000000";  -- Back to OFF
-                end if;
-            when "00000010" =>  -- L2 state or R3 state, ensure this is correct
-                if i_left = '1' then
-                    f_Q_next <= "00000001";  -- Transition to L3 (if L2)
-                else
-                    f_Q_next <= "10000000";  -- Back to OFF
-                end if;
-            when "00000001" =>  -- L3 state
-                if i_left = '1' then
-                    f_Q_next <= "00000100";  -- Cycle back to L1
-                else
-                    f_Q_next <= "10000000";  -- Back to OFF
-                end if;
-            when "00010000" =>  -- R1 state
-                if i_right = '1' then
-                    f_Q_next <= "00001000";  -- Transition to R2
-                else
-                    f_Q_next <= "10000000";  -- Back to OFF
-                end if;
-            when "00001000" =>  -- R2 state
-                if i_right = '1' then
-                    f_Q_next <= "00000010";  -- Transition to R3 (ensure this is the correct encoding for R3)
-                else
-                    f_Q_next <= "10000000";  -- Back to OFF
-                end if;
-            -- Ensure "00000010" is only used once and correctly represents either L2 or R3 but not both
-            when others =>
-                f_Q_next <= "10000000";  -- Failsafe to OFF state
-        end case;
-    end process;
 
-    ---------------------------------------------------------------------------------
- o_LC <= '1' when f_Q(0) = '1' or f_Q(1) = '1' else '0';
-        o_LB <= '1' when f_Q(0) = '1' or (f_Q(6) = '1' and f_Q(5) = '1') else '0';
-        o_LA <= '1' when f_Q(1) = '1' or f_Q(6) = '1' else '0';
-        o_RA <= '1' when f_Q(1) = '1' or f_Q(3) = '1' else '0';
-        o_RB <= '1' when f_Q(1) = '1' or f_Q(2) = '1' else '0';
-        o_RC <= '1' when f_Q(1) = '1' or f_Q(4) = '1' else '0';
-o_lights_L <= o_LC & o_LB & o_LA;
-o_lights_R <= o_RA & o_RB & o_RC;
-  
-  end thunderbird_fsm_arch;	
+    -- Next-state equations
+    S_next(7) <= (S(7) and not i_left and not i_right) or S(6) or S(3) or S(0); -- S7*
+    S_next(6) <= S(7) and i_left and i_right; -- S6*
+    S_next(5) <= S(7) and i_left and not i_right; -- S5*
+    S_next(4) <= S(5); -- S4*
+    S_next(3) <= S(4); -- S3*
+    S_next(2) <= S(7) and i_left and not i_right; -- S2*
+    S_next(1) <= S(2); -- S1*
+    S_next(0) <= S(1); -- S0*
+
+    -- Output logic
+    o_lights_L(0) <= S(6) or S(2) or S(1) or S(0); -- LA
+    o_lights_L(1) <= S(6) or S(1) or S(0); -- LB
+    o_lights_L(2) <= S(6) or S(0); -- LC
+    o_lights_R(0) <= S(6) or S(5) or S(4) or S(3); -- RA
+    o_lights_R(1) <= S(6) or S(4) or S(3); -- RB
+    o_lights_R(2) <= S(6) or S(3); -- RC
+end thunderbird_fsm_arch;
