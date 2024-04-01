@@ -103,46 +103,38 @@ begin
    sim_proc : process
        begin
            -- Reset the FSM
-           w_reset <= '1';
-           wait for k_clk_period;
-           w_reset <= '0';
-           wait for k_clk_period;
+           i_reset <= '1';
+           wait for clk_period;
+           i_reset <= '0';
+           wait for clk_period;
        
            -- Scenario 1: No turn signal, taillights should be off
-           w_left  <= '0';
-           w_right <= '0';
-           wait for k_clk_period;
-           assert w_lights_L = "000" report "Incorrect taillights state when no turn signal" severity failure;
-           assert w_lights_R = "000" report "Incorrect taillights state when no turn signal" severity failure;
+           i_left  <= '0';
+           i_right <= '0';
+           wait for clk_period;
+           assert o_lights_L = "000" report "Incorrect taillights state when no turn signal" severity failure;
+           assert o_lights_R = "000" report "Incorrect taillights state when no turn signal" severity failure;
        
            -- Scenario 2: Left turn signal activated, taillights should blink left
-           w_left  <= '1';
-           w_right <= '0';
-           wait for k_clk_period * 4; -- Wait for a complete left turn signal blink sequence
-           assert w_lights_L = "111" report "Incorrect taillights state for left turn signal" severity failure;
-           assert w_lights_R = "000" report "Incorrect taillights state for left turn signal" severity failure;
+           i_left  <= '1';
+           i_right <= '0';
+           wait for clk_period * 4; -- Wait for a complete left turn signal blink sequence
+           assert o_lights_L = "111" report "Incorrect taillights state for left turn signal" severity failure;
+           assert o_lights_R = "000" report "Incorrect taillights state for left turn signal" severity failure;
        
            -- Scenario 3: Right turn signal activated, taillights should blink right
-           w_left  <= '0';
-           w_right <= '1';
-           wait for k_clk_period * 4; -- Wait for a complete right turn signal blink sequence
-           assert w_lights_L = "000" report "Incorrect taillights state for right turn signal" severity failure;
-           assert w_lights_R = "111" report "Incorrect taillights state for right turn signal" severity failure;
+           i_left  <= '0';
+           i_right <= '1';
+           wait for clk_period * 4; -- Wait for a complete right turn signal blink sequence
+           assert o_lights_L = "000" report "Incorrect taillights state for right turn signal" severity failure;
+           assert o_lights_R = "111" report "Incorrect taillights state for right turn signal" severity failure;
        
            -- Scenario 4: Hazard lights activated, taillights should blink simultaneously
-           w_left  <= '1';
-           w_right <= '1';
-           wait for k_clk_period * 4; -- Wait for a complete hazard lights blink sequence
-           assert w_lights_L = "111" report "Incorrect taillights state for hazard lights" severity failure;
-           assert w_lights_R = "111" report "Incorrect taillights state for hazard lights" severity failure;
-       
-           -- Scenario 5: Combination of left and right turn signal, hazard lights should blink simultaneously
-           w_left  <= '1';
-           w_right <= '1';
-           wait for k_clk_period * 4; -- Wait for a complete hazard lights blink sequence
-           assert w_lights_L = "111" report "Incorrect taillights state for hazard lights" severity failure;
-           assert w_lights_R = "111" report "Incorrect taillights state for hazard lights" severity failure;
+           i_left  <= '1';
+           i_right <= '1';
+           wait for clk_period * 4; -- Wait for a complete hazard lights blink sequence
+           assert o_lights_L = "111" report "Incorrect taillights state for hazard lights" severity failure;
+           assert o_lights_R = "111" report "Incorrect taillights state for hazard lights" severity failure;
        
            wait;
        end process;
-end test_bench;
