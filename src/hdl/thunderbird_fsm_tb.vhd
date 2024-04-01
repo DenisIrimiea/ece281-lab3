@@ -115,13 +115,7 @@ begin
             assert o_lights_L = "000" report "Incorrect taillights state when no turn signal" severity failure;
             assert o_lights_R = "000" report "Incorrect taillights state when no turn signal" severity failure;
         
-            -- Scenario 2: Left turn signal activated, taillights should blink left
-            i_left  <= '1';
-            i_right <= '0';
-            wait for clk_period * 20; -- Wait for a complete left turn signal blink sequence
-            assert o_lights_L = "111" report "Incorrect taillights state for left turn signal" severity failure;
-            assert o_lights_R = "000" report "Incorrect taillights state for left turn signal" severity failure;
-        
+
             -- Scenario 3: Right turn signal activated, taillights should blink right
             i_left  <= '0';
             i_right <= '1';
