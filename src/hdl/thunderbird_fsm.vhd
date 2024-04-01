@@ -113,64 +113,62 @@ process(i_clk)
     end process;
 	-- CONCURRENT STATEMENTS --------------------------------------------------------	
 process(f_Q, i_left, i_right)
-        begin
-            -- Default next state is the current state
-            f_Q_next <= f_Q;  
-            case f_Q is
-                when "10000000" =>  -- OFF state
-                    if i_left = '1' and i_right = '0' then
-                        f_Q_next <= "01000000";  -- Transition to L1
-                    elsif i_right = '1' and i_left = '0' then
-                        f_Q_next <= "00010000";  -- Transition to R1
-                    elsif i_left = '1' and i_right = '1' then
-                        f_Q_next <= "00000001";  -- Transition to ON (hazard)
-                    end if;
-                when "01000000" =>  -- L1 state
-                    if i_left = '1' then
-                        f_Q_next <= "00100000";  -- Transition to L2
-                    else
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    end if;
-                when "00100000" =>  -- L2 state
-                    if i_left = '1' then
-                        f_Q_next <= "00001000";  -- Transition to L3
-                    else
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    end if;
-                when "00001000" =>  -- L3 state
-                    if i_left = '1' then
-                        f_Q_next <= "01000000";  -- Cycle back to L1
-                    else
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    end if;
-                when "00010000" =>  -- R1 state
-                    if i_right = '1' then
-                        f_Q_next <= "00000100";  -- Transition to R2
-                    else
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    end if;
-                when "00000100" =>  -- R2 state
-                    if i_right = '1' then
-                        f_Q_next <= "00000010";  -- Transition to R3
-                    else
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    end if;
-                when "00000010" =>  -- R3 state
-                    if i_right = '1' then
-                        f_Q_next <= "00010000";  -- Cycle back to R1
-                    else
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    end if;
-                when "00000001" =>  -- ON state (hazard)
-                    if i_left = '0' and i_right = '0' then
-                        f_Q_next <= "10000000";  -- Back to OFF
-                    else
-                        f_Q_next <= "00000001";  -- Stay in ON (hazard)
-                    end if;
-                when others =>
-                    f_Q_next <= "10000000"; -- Failsafe to OFF state
-            end case;
-        end process;	
+    begin
+        -- Default next state is the current state
+        f_Q_next <= f_Q;  
+    
+        case f_Q is
+            when "10000000" =>  -- OFF state
+                if i_left = '1' and i_right = '1' then
+                    f_Q_next <= "01000000";  -- Transition to ON (hazard)
+                elsif i_left = '1' then
+                    f_Q_next <= "00000100";  -- Transition to L1
+                elsif i_right = '1' then
+                    f_Q_next <= "00010000";  -- Transition to R1
+                end if;
+            when "01000000" =>  -- ON state (hazard)
+                -- Transition to OFF regardless of inputs
+                f_Q_next <= "10000000";  
+            when "00000100" =>  -- L1 state
+                if i_left = '1' then
+                    f_Q_next <= "00000010";  -- Transition to L2
+                else
+                    f_Q_next <= "10000000";  -- Back to OFF
+                end if;
+            when "00000010" =>  -- L2 state
+                if i_left = '1' then
+                    f_Q_next <= "00000001";  -- Transition to L3
+                else
+                    f_Q_next <= "10000000";  -- Back to OFF
+                end if;
+            when "00000001" =>  -- L3 state
+                if i_left = '1' then
+                    f_Q_next <= "00000100";  -- Cycle back to L1
+                else
+                    f_Q_next <= "10000000";  -- Back to OFF
+                end if;
+            when "00010000" =>  -- R1 state
+                if i_right = '1' then
+                    f_Q_next <= "00001000";  -- Transition to R2
+                else
+                    f_Q_next <= "10000000";  -- Back to OFF
+                end if;
+            when "00001000" =>  -- R2 state
+                if i_right = '1' then
+                    f_Q_next <= "00000010";  -- Transition to R3
+                else
+                    f_Q_next <= "10000000";  -- Back to OFF
+                end if;
+            when "00000010" =>  -- R3 state
+                if i_right = '1' then
+                    f_Q_next <= "00010000";  -- Cycle back to R1
+                else
+                    f_Q_next <= "10000000";  -- Back to OFF
+                end if;
+            when others =>
+                f_Q_next <= "10000000";  -- Failsafe to OFF state
+        end case;
+    end process;
     ---------------------------------------------------------------------------------
  o_LC <= '1' when f_Q(0) = '1' or f_Q(1) = '1' else '0';
         o_LB <= '1' when f_Q(0) = '1' or (f_Q(6) = '1' and f_Q(5) = '1') else '0';
