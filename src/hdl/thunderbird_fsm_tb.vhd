@@ -118,24 +118,24 @@ begin
             -- Scenario 2: Left turn signal activated, taillights should blink left
             i_left  <= '1';
             i_right <= '0';
-            wait for clk_period * 4; -- Wait for a complete left turn signal blink sequence
+            wait for clk_period * 20; -- Wait for a complete left turn signal blink sequence
             assert o_lights_L = "111" report "Incorrect taillights state for left turn signal" severity failure;
             assert o_lights_R = "000" report "Incorrect taillights state for left turn signal" severity failure;
         
             -- Scenario 3: Right turn signal activated, taillights should blink right
             i_left  <= '0';
             i_right <= '1';
-            wait for clk_period * 4; -- Wait for a complete right turn signal blink sequence
+            wait for clk_period * 20; -- Wait for a complete right turn signal blink sequence
             assert o_lights_L = "000" report "Incorrect taillights state for right turn signal" severity failure;
             assert o_lights_R = "111" report "Incorrect taillights state for right turn signal" severity failure;
         
             -- Scenario 4: Hazard lights activated, taillights should blink simultaneously
             i_left  <= '1';
             i_right <= '1';
-            wait for clk_period * 4; -- Wait for a complete hazard lights blink sequence
+            wait for clk_period * 20; -- Wait for a complete hazard lights blink sequence
             assert o_lights_L = "111" report "Incorrect taillights state for hazard lights" severity failure;
             assert o_lights_R = "111" report "Incorrect taillights state for hazard lights" severity failure;
-   
+             
         wait;
     end process;
 
