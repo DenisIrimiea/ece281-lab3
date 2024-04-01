@@ -128,14 +128,15 @@ assert o_lights_L = "000" report "Left turn signal should be off during right tu
 i_right <= '0';  -- Turn off the right signal
 wait for clk_period * 2;
 
----- Scenario 4: Activate Hazard Lights (Both Signals)
---i_left <= '1';
---i_right <= '1';
---wait for clk_period * 10;  -- Adjust the time as needed
---assert (o_lights_L /= "000" and o_lights_R /= "000") report "Hazard lights did not activate correctly" severity failure;
---i_left <= '0';
---i_right <= '0';
---wait for clk_period * 2;
+-- Scenario 4: Activate Hazard Lights (Both Signals)
+i_left <= '1';
+i_right <= '1';
+wait for clk_period * 10;  -- Adjust the time as needed
+-- Ensure that during hazard lights, all LEDs should be on ("111")
+assert (o_lights_L = "111" and o_lights_R = "111") report "Hazard lights did not activate correctly" severity failure;
+i_left <= '0';
+i_right <= '0';
+wait for clk_period * 2;
 
 -- Scenario 5: Switching directly from left to right signal
 i_left <= '1';
