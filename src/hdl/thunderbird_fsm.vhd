@@ -117,7 +117,7 @@ begin
     S_next(4) <= S(5); -- S4* (Following S5, could be part of a right turn sequence)
     S_next(3) <= S(2); -- S3* (Following S2, could be part of a right turn sequence)
     S_next(2) <= (S(7) and i_left and not i_right) or S(1); -- S2* (L2 state or following S1)
-    S_next(1) <= S(2) or (S(7) and not i_left and i_right); -- S1* (L3 state or R1 state)
+    S_next(1) <= S(2) or (S(7) and i_left and not i_right); -- S1* (L3 state or following S2)
     S_next(0) <= S(1) or S(6); -- S0* (Following L3 or ON state)
 
     -- Output logic
