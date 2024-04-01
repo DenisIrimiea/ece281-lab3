@@ -111,20 +111,20 @@ begin
     end process;
 
     -- Next-state equations
-    S_next(7) <= (S(7) and not i_left and not i_right) or S(6) or S(3) or S(0); -- S7*
-    S_next(6) <= S(7) and i_left and i_right; -- S6*
-    S_next(5) <= S(7) and i_left and not i_right; -- S5*
-    S_next(4) <= S(5); -- S4*
-    S_next(3) <= S(4); -- S3*
-    S_next(2) <= S(7) and i_left and not i_right; -- S2*
-    S_next(1) <= S(2); -- S1*
-    S_next(0) <= S(1); -- S0*
-
-    -- Output logic
-    o_lights_L(0) <= S(6) or S(2) or S(1) or S(0); -- LA
-    o_lights_L(1) <= S(6) or S(1) or S(0); -- LB
-    o_lights_L(2) <= S(6) or S(0); -- LC
-    o_lights_R(0) <= S(6) or S(5) or S(4) or S(3); -- RA
-    o_lights_R(1) <= S(6) or S(4) or S(3); -- RB
-    o_lights_R(2) <= S(6) or S(3); -- RC
-end thunderbird_fsm_arch;
+ S_next(7) <= (S(7) and not i_left and not i_right) or S(6) or S(3) or S(0); -- S7*
+       S_next(6) <= S(7) and i_left and i_right; -- S6* (ON state)
+       S_next(5) <= S(4); -- S5* (Following S4, could be part of a right turn sequence)
+       S_next(4) <= S(5); -- S4* (Following S5, could be part of a right turn sequence)
+       S_next(3) <= S(2); -- S3* (Following S2, could be part of a right turn sequence)
+       S_next(2) <= (S(7) and i_left and not i_right) or S(1); -- S2* (L2 state or following S1)
+       S_next(1) <= S(2) or (S(7) and not i_left and i_right); -- S1* (L3 state or R1 state)
+       S_next(0) <= S(1) or S(6); -- S0* (Following L3 or ON state)
+   
+       -- Output logic
+       o_lights_L(0) <= S(2) or S(1) or S(0); -- LA
+       o_lights_L(1) <= S(1) or S(0); -- LB
+       o_lights_L(2) <= S(0); -- LC
+       o_lights_R(0) <= S(5) or S(4) or S(3); -- RA
+       o_lights_R(1) <= S(4) or S(3); -- RB
+       o_lights_R(2) <= S(3); -- RC
+   end thunderbird_fsm_arch;
