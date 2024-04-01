@@ -57,50 +57,67 @@
 --|
 --+----------------------------------------------------------------------------
 library ieee;
-  use ieee.std_logic_1164.all;
-  use ieee.numeric_std.all;
-
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity top_basys3 is
-	port(
-
-		clk     :   in std_logic; -- native 100MHz FPGA clock
-		
-		-- Switches (16 total)
-		sw  	:   in std_logic_vector(15 downto 0); -- sw(15) = left; sw(0) = right
-
-		-- LEDs (16 total)
-		-- taillights (LC, LB, LA, RA, RB, RC)
-		led 	:   out std_logic_vector(15 downto 0);  -- led(15:13) --> L
-                                                        -- led(2:0)   --> R
-		
-		-- Buttons (5 total)
-		--btnC	:	in	std_logic
-		--btnU	:	in	std_logic;
-		btnL	:	in	std_logic;                    -- clk_reset
-		btnR	:	in	std_logic	                  -- fsm_reset
-		--btnD	:	in	std_logic;	
-	);
+    port(
+        clk     : in std_logic;
+        sw      : in std_logic_vector(15 downto 0);
+        led     : out std_logic_vector(15 downto 0);
+        btnL    : in std_logic; 
+        btnR    : in std_logic 
+    );
 end top_basys3;
 
 architecture top_basys3_arch of top_basys3 is 
-  
-	-- declare components
 
-  
+    component thunderbird_fsm is 
+        port (
+            i_clk   : in std_logic;
+            i_reset : in std_logic;
+            i_left  : in std_logic;
+            i_right : in std_logic;
+            o_lights_L : out std_logic_vector(2 downto 0);
+            o_lights_R : out std_logic_vector(2 downto 0)
+        );
+    end component;
+
+    signal fsm_reset : std_logic;
+    signal sys_reset : std_logic;
+    signal combined_reset : std_logic; 
+
 begin
-	-- PORT MAPS ----------------------------------------
+    combined_reset <= sys_reset or fsm_reset;
 
-	
-	
-	-- CONCURRENT STATEMENTS ----------------------------
-	
-	-- ground unused LEDs
-	-- leave unused switches UNCONNECTED
-	
-	-- Ignore the warnings associated with these signals
-	-- Alternatively, you can create a different board implementation, 
-	--   or make additional adjustments to the constraints file
-	led(12 downto 3) <= (others => '0');
-	
+    FSM_Instance : thunderbird_fsm
+        port map (
+            i_clk => clk,
+            i_reset => combined_reset, 
+            i_left => sw(15),
+            i_right => sw(0),
+            o_lights_L => led(15 downto 13),
+            o_lights_R => led(2 downto 0)
+        );
+
+    btnL_proc : process(btnL)
+    begin
+        if btnL = '1' then
+            sys_reset <= '1';
+        else
+            sys_reset <= '0';
+        end if;
+    end process btnL_proc;
+
+    btnR_proc : process(btnR)
+    begin
+        if btnR = '1' then
+            fsm_reset <= '1';
+        else
+            fsm_reset <= '0';
+        end if;
+    end process btnR_proc;
+
+    led(12 downto 3) <= (others => '0');
+
 end top_basys3_arch;

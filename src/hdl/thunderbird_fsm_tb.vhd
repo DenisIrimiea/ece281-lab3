@@ -57,28 +57,92 @@ end thunderbird_fsm_tb;
 architecture test_bench of thunderbird_fsm_tb is 
 	
 	component thunderbird_fsm is 
-	  port(
-		
-	  );
+	  port(         
+	i_clk 	 : in  std_logic;
+    i_reset : in  std_logic;
+    i_left  : in  std_logic;
+    i_right : in  std_logic;
+    o_lights_L : out  std_logic_vector(2 downto 0);
+    o_lights_R : out  std_logic_vector(2 downto 0)
+    );
 	end component thunderbird_fsm;
 
-	-- test I/O signals
+	signal i_clk : std_logic := '0';
+        signal i_reset : std_logic := '0';
+        signal i_left : std_logic := '0';
+        signal i_right : std_logic := '0';
+        
+       
+        signal o_lights_L : std_logic_vector(2 downto 0);
+        signal o_lights_R : std_logic_vector(2 downto 0);
+        
+        constant clk_period : time := 10 ns;
 	
-	-- constants
 	
-	
-begin
-	-- PORT MAPS ----------------------------------------
-	
-	-----------------------------------------------------
-	
-	-- PROCESSES ----------------------------------------	
-    -- Clock process ------------------------------------
-    
-	-----------------------------------------------------
-	
-	-- Test Plan Process --------------------------------
-	
-	-----------------------------------------------------	
-	
+begin 
+ uut: component thunderbird_fsm
+       port map (
+           i_clk      => i_clk,
+           i_reset    => i_reset,
+           i_left     => i_left,
+           i_right    => i_right,
+           o_lights_L => o_lights_L,
+           o_lights_R => o_lights_R
+       );
+   
+   clk_process: process
+       begin
+           w_clk <= '0';
+           wait for k_clk_period / 2;
+           w_clk <= '1';
+           wait for k_clk_period / 2;
+       end process;
+   
+   
+   
+   sim_proc : process
+       begin
+           -- Reset the FSM
+           w_reset <= '1';
+           wait for k_clk_period;
+           w_reset <= '0';
+           wait for k_clk_period;
+       
+           -- Scenario 1: No turn signal, taillights should be off
+           w_left  <= '0';
+           w_right <= '0';
+           wait for k_clk_period;
+           assert w_lights_L = "000" report "Incorrect taillights state when no turn signal" severity failure;
+           assert w_lights_R = "000" report "Incorrect taillights state when no turn signal" severity failure;
+       
+           -- Scenario 2: Left turn signal activated, taillights should blink left
+           w_left  <= '1';
+           w_right <= '0';
+           wait for k_clk_period * 4; -- Wait for a complete left turn signal blink sequence
+           assert w_lights_L = "111" report "Incorrect taillights state for left turn signal" severity failure;
+           assert w_lights_R = "000" report "Incorrect taillights state for left turn signal" severity failure;
+       
+           -- Scenario 3: Right turn signal activated, taillights should blink right
+           w_left  <= '0';
+           w_right <= '1';
+           wait for k_clk_period * 4; -- Wait for a complete right turn signal blink sequence
+           assert w_lights_L = "000" report "Incorrect taillights state for right turn signal" severity failure;
+           assert w_lights_R = "111" report "Incorrect taillights state for right turn signal" severity failure;
+       
+           -- Scenario 4: Hazard lights activated, taillights should blink simultaneously
+           w_left  <= '1';
+           w_right <= '1';
+           wait for k_clk_period * 4; -- Wait for a complete hazard lights blink sequence
+           assert w_lights_L = "111" report "Incorrect taillights state for hazard lights" severity failure;
+           assert w_lights_R = "111" report "Incorrect taillights state for hazard lights" severity failure;
+       
+           -- Scenario 5: Combination of left and right turn signal, hazard lights should blink simultaneously
+           w_left  <= '1';
+           w_right <= '1';
+           wait for k_clk_period * 4; -- Wait for a complete hazard lights blink sequence
+           assert w_lights_L = "111" report "Incorrect taillights state for hazard lights" severity failure;
+           assert w_lights_R = "111" report "Incorrect taillights state for hazard lights" severity failure;
+       
+           wait;
+       end process;
 end test_bench;
