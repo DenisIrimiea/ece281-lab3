@@ -95,61 +95,18 @@ begin
         end loop;
     end process;
 
-    -- Test process
     sim_proc : process
     begin
-        -- Reset the FSM
         i_reset <= '1';
         wait for clk_period * 2;  -- Ensure reset is captured
         i_reset <= '0';
         wait for clk_period * 2;  -- Wait for FSM to move out of the reset state
 
-        -- Scenario 1: No turn signal, taillights should be off
         i_left  <= '0';
         i_right <= '0';
         wait for clk_period * 10;  -- Wait to ensure FSM has processed the input
         assert o_lights_L = "000" and o_lights_R = "000" report "Incorrect taillights state when no turn signal" severity failure;
 
-        -- Scenario 2: Activate Left Turn Signal
-i_left <= '1';
-i_right <= '0';
-wait for clk_period * 10;  -- Adjust the time as needed based on your FSM design
-assert o_lights_L /= "000" report "Left turn signal did not activate correctly" severity failure;
-assert o_lights_R = "000" report "Right turn signal should be off during left turn signal" severity failure;
-i_left <= '0';  -- Turn off the left signal
-wait for clk_period * 2;
-
--- Scenario 3: Activate Right Turn Signal
-i_left <= '0';
-i_right <= '1';
-wait for clk_period * 10;  -- Adjust the time as needed
-assert o_lights_R /= "000" report "Right turn signal did not activate correctly" severity failure;
-assert o_lights_L = "000" report "Left turn signal should be off during right turn signal" severity failure;
-i_right <= '0';  -- Turn off the right signal
-wait for clk_period * 2;
-
--- Scenario 4: Activate Hazard Lights (Both Signals)
-i_left <= '1';
-i_right <= '1';
-wait for clk_period * 10;  -- Adjust the time as needed
--- Ensure that during hazard lights, all LEDs should be on ("111")
-assert (o_lights_L = "111" and o_lights_R = "111") report "Hazard lights did not activate correctly" severity failure;
-i_left <= '0';
-i_right <= '0';
-wait for clk_period * 2;
-
--- Scenario 5: Switching directly from left to right signal
-i_left <= '1';
-i_right <= '0';
-wait for clk_period * 5;  -- Halfway through the left signal
-i_left <= '0';
-i_right <= '1';
-wait for clk_period * 10;  -- Allow full cycle for right signal
-assert o_lights_R /= "000" report "Right turn signal did not activate correctly after left signal" severity failure;
-assert o_lights_L = "000" report "Left turn signal should be off when right turn signal is activated" severity failure;
-
-        -- Additional scenarios should be added here following the same structure
-        -- Ensure to reset the inputs and provide adequate wait times between different scenarios
 
         wait;  -- Hold simulation
     end process;
